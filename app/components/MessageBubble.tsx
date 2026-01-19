@@ -22,42 +22,30 @@ export default function MessageBubble({ message, index }: MessageBubbleProps) {
       }}
       className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}
     >
-      <div
-        className={`
-          max-w-[80%] md:max-w-[70%] rounded-2xl px-4 py-3
-          ${isUser 
-            ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-br-md' 
-            : 'bg-gray-800/80 text-gray-100 rounded-bl-md border border-gray-700/50'
-          }
-        `}
-      >
-        {/* Avatar and role indicator */}
-        <div className={`flex items-center gap-2 mb-1 ${isUser ? 'justify-end' : ''}`}>
-          <div className={`
-            w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold
-            ${isUser 
-              ? 'bg-white/20 text-white order-2' 
-              : 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white'
-            }
-          `}>
-            {isUser ? 'U' : 'AI'}
+      <div className={`flex items-start gap-3 max-w-[85%] md:max-w-[75%]`}>
+        {/* AI Avatar */}
+        {!isUser && (
+          <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-500 
+                          flex items-center justify-center mt-1">
+            <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
+            </svg>
           </div>
-          <span className={`text-xs ${isUser ? 'text-violet-200 order-1' : 'text-gray-400'}`}>
-            {isUser ? 'You' : 'Assistant'}
-          </span>
-        </div>
+        )}
 
-        {/* Message content */}
-        <div className={`text-sm leading-relaxed whitespace-pre-wrap ${isUser ? 'text-white' : 'text-gray-200'}`}>
-          {message.content}
-        </div>
-
-        {/* Timestamp */}
-        <div className={`text-xs mt-2 ${isUser ? 'text-violet-200/60' : 'text-gray-500'}`}>
-          {new Date(message.timestamp).toLocaleTimeString([], { 
-            hour: '2-digit', 
-            minute: '2-digit' 
-          })}
+        {/* Message bubble */}
+        <div
+          className={`
+            rounded-2xl px-4 py-3
+            ${isUser 
+              ? 'bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white' 
+              : 'bg-[#252542] text-gray-200'
+            }
+          `}
+        >
+          <p className="text-sm leading-relaxed whitespace-pre-wrap">
+            {message.content}
+          </p>
         </div>
       </div>
     </motion.div>

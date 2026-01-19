@@ -12,6 +12,7 @@ interface SidebarProps {
   onEditTitle: (id: string, title: string) => void;
   onDeleteConversation: (id: string) => void;
   isOpen: boolean;
+  onToggle: () => void;
   onClose: () => void;
 }
 
@@ -23,6 +24,7 @@ export default function Sidebar({
   onEditTitle,
   onDeleteConversation,
   isOpen,
+  onToggle,
   onClose,
 }: SidebarProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -72,19 +74,40 @@ export default function Sidebar({
         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
         className={`
           fixed lg:relative inset-y-0 left-0 z-50
-          w-72 bg-gradient-to-b from-gray-900 to-gray-950
-          border-r border-gray-800/50 flex flex-col
+          w-64 bg-[#1a1a2e] flex flex-col
           lg:translate-x-0
         `}
       >
-        {/* Header */}
-        <div className="p-4 border-b border-gray-800/50">
+        {/* Header with branding and toggle */}
+        <div className="p-4 flex items-center gap-3 border-b border-gray-700/30">
+          {/* Toggle button */}
+          <button
+            onClick={onToggle}
+            className="p-1.5 rounded-lg hover:bg-[#252542] text-gray-400 hover:text-white transition-colors"
+            title="Toggle sidebar (Ctrl+B)"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+
+          {/* Logo and branding */}
+          <div className="flex items-center gap-2 flex-1">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center">
+              <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
+              </svg>
+            </div>
+            <span className="font-semibold text-white text-sm">simplechat<span className="text-cyan-400">.ai</span></span>
+          </div>
+        </div>
+
+        {/* New Chat button */}
+        <div className="p-3">
           <button
             onClick={onNewConversation}
-            className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 
-                       hover:from-violet-500 hover:to-indigo-500 text-white font-medium
-                       flex items-center justify-center gap-2 transition-all duration-200
-                       shadow-lg shadow-violet-900/30 hover:shadow-violet-800/40"
+            className="w-full py-2.5 px-4 rounded-lg bg-[#252542] hover:bg-[#2d2d4a]
+                       text-white font-medium flex items-center gap-2 transition-colors"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -93,8 +116,13 @@ export default function Sidebar({
           </button>
         </div>
 
+        {/* Conversations label */}
+        <div className="px-4 py-2">
+          <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Conversations</span>
+        </div>
+
         {/* Conversations list */}
-        <div className="flex-1 overflow-y-auto py-2 px-2 space-y-1 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto px-2 space-y-1 custom-scrollbar">
           <AnimatePresence mode="popLayout">
             {conversations.map((conv) => (
               <motion.div
@@ -106,13 +134,18 @@ export default function Sidebar({
                 className={`
                   group relative rounded-lg cursor-pointer transition-all duration-200
                   ${activeConversationId === conv.id 
-                    ? 'bg-gray-800/80 shadow-md' 
-                    : 'hover:bg-gray-800/40'
+                    ? 'bg-[#252542]' 
+                    : 'hover:bg-[#252542]/50'
                   }
                 `}
                 onClick={() => onSelectConversation(conv.id)}
               >
-                <div className="p-3 pr-16">
+                <div className="p-3 pr-20 flex items-center gap-3">
+                  <svg className="w-4 h-4 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                          d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                  
                   {editingId === conv.id ? (
                     <input
                       type="text"
@@ -122,18 +155,13 @@ export default function Sidebar({
                       onKeyDown={handleKeyDown}
                       onClick={(e) => e.stopPropagation()}
                       autoFocus
-                      className="w-full bg-gray-700 text-white text-sm rounded px-2 py-1 
-                                 outline-none focus:ring-2 focus:ring-violet-500"
+                      className="flex-1 bg-[#1a1a2e] text-white text-sm rounded px-2 py-1 
+                                 outline-none focus:ring-1 focus:ring-cyan-500"
                     />
                   ) : (
-                    <>
-                      <p className="text-sm text-gray-200 truncate font-medium">
-                        {conv.title}
-                      </p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {conv.messages.length} messages
-                      </p>
-                    </>
+                    <span className="text-sm text-gray-300 truncate">
+                      {conv.title}
+                    </span>
                   )}
                 </div>
 
@@ -146,12 +174,12 @@ export default function Sidebar({
                         e.stopPropagation();
                         handleStartEdit(conv);
                       }}
-                      className="p-1.5 rounded hover:bg-gray-700 text-gray-400 hover:text-white"
+                      className="p-1.5 rounded hover:bg-[#1a1a2e] text-gray-400 hover:text-white"
                       title="Edit title"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                              d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                       </svg>
                     </button>
                     <button
@@ -159,7 +187,7 @@ export default function Sidebar({
                         e.stopPropagation();
                         onDeleteConversation(conv.id);
                       }}
-                      className="p-1.5 rounded hover:bg-red-900/50 text-gray-400 hover:text-red-400"
+                      className="p-1.5 rounded hover:bg-red-900/30 text-gray-400 hover:text-red-400"
                       title="Delete conversation"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -172,13 +200,6 @@ export default function Sidebar({
               </motion.div>
             ))}
           </AnimatePresence>
-        </div>
-
-        {/* Footer */}
-        <div className="p-4 border-t border-gray-800/50">
-          <p className="text-xs text-gray-500 text-center">
-            SimpleChat AI Assistant
-          </p>
         </div>
       </motion.aside>
     </>

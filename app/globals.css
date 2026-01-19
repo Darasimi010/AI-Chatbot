@@ -1,20 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  --background: #030712;
+  --background: #0f0f1a;
   --foreground: #f9fafb;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family:
-    "Inter",
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    Roboto,
-    sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 /* Custom scrollbar */
@@ -27,18 +21,18 @@ body {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(139, 92, 246, 0.3);
+  background: rgba(99, 179, 237, 0.2);
   border-radius: 3px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(139, 92, 246, 0.5);
+  background: rgba(99, 179, 237, 0.4);
 }
 
 /* Firefox scrollbar */
 .custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: rgba(139, 92, 246, 0.3) transparent;
+  scrollbar-color: rgba(99, 179, 237, 0.2) transparent;
 }
 
 /* Smooth scrolling */
@@ -55,29 +49,17 @@ html {
 
 /* Selection color */
 ::selection {
-  background: rgba(139, 92, 246, 0.4);
+  background: rgba(99, 179, 237, 0.4);
   color: white;
 }
 
 /* Focus outline for accessibility */
 *:focus-visible {
-  outline: 2px solid rgba(139, 92, 246, 0.5);
+  outline: 2px solid rgba(99, 179, 237, 0.5);
   outline-offset: 2px;
 }
 
 /* Prevent text selection on buttons */
 button {
   user-select: none;
-}
-
-/* Smooth transitions for theme changes */
-* {
-  transition-property: background-color, border-color;
-  transition-duration: 0.15s;
-  transition-timing-function: ease-out;
-}
-
-/* Disable transitions on page load */
-.preload * {
-  transition: none !important;
 }
