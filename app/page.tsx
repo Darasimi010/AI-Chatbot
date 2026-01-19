@@ -1,64 +1,164 @@
-import Image from "next/image";
+'use client';
+
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import Sidebar from './components/Sidebar';
+import ChatArea from './components/ChatArea';
+import ChatInput from './components/ChatInput';
+import { useConversations } from './hooks/useConversations';
 
 export default function Home() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+  const {
+    conversations,
+    createConversation,
+    updateConversationTitle,
+    deleteConversation,
+    addMessage,
+    getConversation,
+  } = useConversations();
+
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  // Set mounted state and initial conversation
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Set active conversation when conversations load
+  useEffect(() => {
+    if (mounted && conversations.length > 0 && !activeConversationId) {
+      setActiveConversationId(conversations[0].id);
+    }
+  }, [mounted, conversations, activeConversationId]);
+
+  const activeConversation = activeConversationId ? getConversation(activeConversationId) : null;
+
+  const handleNewConversation = () => {
+    const newId = createConversation();
+    setActiveConversationId(newId);
+    setSidebarOpen(false);
+  };
+
+  const handleDeleteConversation = (id: string) => {
+    deleteConversation(id);
+    if (activeConversationId === id) {
+      const remaining = conversations.filter((c) => c.id !== id);
+      setActiveConversationId(remaining.length > 0 ? remaining[0].id : null);
+    }
+  };
+
+  const handleSendMessage = async (content: string) => {
+    if (!activeConversationId) return;
+
+    // Add user message
+    addMessage(activeConversationId, { role: 'user', content });
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: content }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        addMessage(activeConversationId, { 
+          role: 'assistant', 
+          content: data.response 
+        });
+      } else {
+        addMessage(activeConversationId, { 
+          role: 'assistant', 
+          content: 'Sorry, I encountered an error. Please try again.' 
+        });
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+      addMessage(activeConversationId, { 
+        role: 'assistant', 
+        content: 'Sorry, I couldn\'t connect to the server. Please check your connection and try again.' 
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Prevent hydration mismatch
+  if (!mounted) {
+    return (
+      <div className="h-screen bg-gray-950 flex items-center justify-center">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+          className="w-10 h-10 border-3 border-violet-500 border-t-transparent rounded-full"
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-screen bg-gray-950 flex overflow-hidden">
+      {/* Sidebar */}
+      <Sidebar
+        conversations={conversations}
+        activeConversationId={activeConversationId}
+        onSelectConversation={(id) => {
+          setActiveConversationId(id);
+          setSidebarOpen(false);
+        }}
+        onNewConversation={handleNewConversation}
+        onEditTitle={updateConversationTitle}
+        onDeleteConversation={handleDeleteConversation}
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+      />
+
+      {/* Main chat area */}
+      <main className="flex-1 flex flex-col min-w-0">
+        {/* Header */}
+        <header className="flex items-center gap-4 px-4 h-16 border-b border-gray-800/50 bg-gray-900/50 backdrop-blur-xl">
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="p-2 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white transition-colors"
+            title={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          
+          <div className="flex-1 min-w-0">
+            <h1 className="text-lg font-semibold text-white truncate">
+              {activeConversation?.title || 'SimpleChat'}
+            </h1>
+            {activeConversation && (
+              <p className="text-xs text-gray-500">
+                {activeConversation.messages.length} messages
+              </p>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-xs text-gray-400 hidden sm:block">Online</span>
+          </div>
+        </header>
+
+        {/* Chat messages */}
+        <ChatArea conversation={activeConversation ?? null} isLoading={isLoading} />
+
+        {/* Input */}
+        {activeConversation && (
+          <ChatInput 
+            onSendMessage={handleSendMessage} 
+            disabled={isLoading} 
+          />
+        )}
       </main>
     </div>
   );
